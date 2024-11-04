@@ -116,12 +116,22 @@ always_comb begin
     endcase
 end
 
+reg prev_vsync;
+wire new_frame = (vsync == project_ui_in[7] && prev_vsync != project_ui_in[7]);
+always @(posedge clk) begin
+    if(!rst_n) begin
+        prev_vsync <= 0;
+    end else begin
+        prev_vsync <= vsync;
+    end
+end
+
 wire hsync = project_uo_out[7];
 wire vsync = project_uo_out[3];
 
 reg [6:0] dither_threshold;
 always @(posedge clk) begin
-    if(!rst_n || (vsync == project_ui_in[7])) begin
+    if(!rst_n || new_frame) begin
         dither_threshold <= 0;
     end else begin
         if (dither_threshold >= 66) begin  // 19 + 66 = 85 = 8'b01010101
